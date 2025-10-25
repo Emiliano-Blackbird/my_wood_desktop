@@ -28,7 +28,7 @@ class UserProfile(models.Model):
         _('bio'),
         max_length=500,
         blank=True,
-        help_text=_('Breve descripción del usuario.'),
+        help_text=_('Escribe una breve descripción.'),
     )
 
     friends = models.ManyToManyField(
@@ -58,7 +58,7 @@ class UserProfile(models.Model):
         Crear solicitud si no existe, no es a sí mismo y no sois ya amigos.
         Si existe una solicitud inversa pendiente, se acepta automáticamente.
         """
-        from .models import FriendRequest  # evita import circular en algunos entornos
+        from .models import FriendRequest
 
         if self == to_profile:
             return None

@@ -16,7 +16,7 @@ class Alarm(models.Model):
     name = models.CharField(
         _('nombre'),
         max_length=100,
-        help_text=_('Nombre descriptivo para la alarma'),
+        help_text=_('Nombre de la alarma'),
     )
     time = models.TimeField(_('hora'))
     days = models.JSONField(

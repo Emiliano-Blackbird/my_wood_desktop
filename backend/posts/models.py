@@ -19,7 +19,7 @@ class Subject(models.Model):
 
 
 class Post(models.Model):
-    """Contenido compartido por usuarios: img + tags de asignatura."""
+    """Contenido compartido por usuarios + tags de asignatura."""
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -44,7 +44,7 @@ class Post(models.Model):
         _('caption'),
         max_length=1000,
         blank=True,
-        help_text=_('Breve descripción o contexto del resumen.'),
+        help_text=_('Breve descripción del resumen.'),
     )
     created_at = models.DateTimeField(
         _('creado el'),
