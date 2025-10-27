@@ -1,0 +1,36 @@
+{% extends 'general/layout.html' %}
+
+{% block title %}Inicio | My Wood Desktop{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <section class="hero">
+        <h1>Bienvenido a My Wood Desktop</h1>
+        <p class="lead">Tu espacio de estudio personalizado</p>
+        {% if not user.is_authenticated %}
+            <div class="cta-buttons">
+                <a href="{% url 'login' %}" class="btn btn-primary">Iniciar Sesión</a>
+                <a href="{% url 'register' %}" class="btn btn-secondary">Registrarse</a>
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="features">
+        <h2>Características</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3>Pomodoro Timer</h3>
+                <p>Gestiona tu tiempo de estudio eficientemente</p>
+            </div>
+            <div class="feature-card">
+                <h3>Notas y Post-its</h3>
+                <p>Organiza tus ideas y recordatorios</p>
+            </div>
+            <div class="feature-card">
+                <h3>Seguimiento de Estudio</h3>
+                <p>Analiza tu progreso y mejora constantemente</p>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

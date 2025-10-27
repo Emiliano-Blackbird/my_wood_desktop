@@ -1,0 +1,50 @@
+{% extends 'general/layout.html' %}
+
+{% block title %}Dashboard | My Wood Desktop{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Mi Escritorio</h1>
+        <p>Bienvenido, {{ user.username }}</p>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="widget study-session">
+            <h2>Sesión de Estudio</h2>
+            <!-- Widget de sesión activa -->
+        </div>
+
+        <div class="widget pomodoro">
+            <h2>Pomodoro</h2>
+            <!-- Widget de pomodoro -->
+        </div>
+
+        <div class="widget notifications">
+            <h2>Notificaciones</h2>
+            {% if recent_notifications %}
+                <ul class="notifications-list">
+                    {% for notification in recent_notifications %}
+                        <li>{{ notification.message }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No hay notificaciones nuevas</p>
+            {% endif %}
+        </div>
+
+        <div class="widget recent-posts">
+            <h2>Posts Recientes</h2>
+            {% if recent_posts %}
+                <ul class="posts-list">
+                    {% for post in recent_posts %}
+                        <li>{{ post.caption }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No hay posts recientes</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

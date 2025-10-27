@@ -4,7 +4,19 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # Especifica la ruta base del proyecto
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Templates directory
+TEMPLATES_DIR = BASE_DIR / 'my_wood_desk_back' / 'templates'
 
+# Static files configuration
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'my_wood_desk_back' / 'static',
+]
+
+# Media files configuration
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # Clave secreta para encriptación y seguridad de contraseñas
@@ -55,10 +67,11 @@ ROOT_URLCONF = 'my_wood_desk_back.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [TEMPLATES_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',

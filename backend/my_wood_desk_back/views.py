@@ -1,0 +1,95 @@
+from django.views.generic import TemplateView, CreateView
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.forms import UserCreationForm
+from django.urls import reverse_lazy
+from django.shortcuts import get_object_or_404
+
+"""
+Vistas del proyecto "my_wood_desk_back".
+
+- Páginas estáticas como TemplateView.
+- Registrar y manejar autenticación aquí para mantener plantillas
+  simples (LoginView/LogoutView delegadas a las clases de Django).
+- Dashboard protegido muestra datos básicos del usuario y sirve
+  como punto de integración para componentes globales (widgets,
+  estadísticas, notificaciones).
+"""
+
+
+class HomeView(TemplateView):
+    """Página de inicio pública."""
+    template_name = "general/home.html"
+
+
+class LegalView(TemplateView):
+    template_name = "general/legal.html"
+
+
+class LoginView(auth_views.LoginView):
+    """
+    Wrapper sobre la vista de login de Django.
+    Para fijar la plantilla por defecto y centralizar
+    comportamiento (p. ej. next page).
+    """
+    template_name = "general/login.html"
+
+
+class LogoutView(auth_views.LogoutView):
+    """Logout simple; puede redirigir a 'home' vía configuración o urls."""
+    next_page = "/"  # Redirigir a la página de inicio tras logout
+
+
+class RegisterView(CreateView):
+    """
+    Usa el UserCreationForm por simplicidad. Si necesitas campos
+    adicionales (email, profile, etc.) sustituir por un form personalizado.
+    """
+    template_name = "general/register.html"
+    form_class = UserCreationForm
+    success_url = reverse_lazy('login')
+
+    def form_valid(self, form):
+        """
+        Método invocado cuando el formulario es válido.
+        Mantenerlo simple: guardar usuario y permitir señales (signals)
+        para crear UserProfile u otras tareas (ver profiles.signals).
+        """
+        response = super().form_valid(form)
+        return response
+
+
+class DashboardView(LoginRequiredMixin, TemplateView):
+    """
+    Panel principal del usuario.
+    Aquí se agregan los widgets principales: resumen de study sessions,
+    notificaciones recientes, accesos rápidos (pomodoro, reloj, post-its).
+    Vista ligera; la lógica compleja debe residir en servicios
+    o managers consultados desde get_context_data.
+    """
+    template_name = "general/dashboard.html"
+    login_url = reverse_lazy('login')
+    redirect_field_name = 'next'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        user = self.request.user
+
+        # Intentar añadir perfil si existe (signals suelen crearlo)
+        try:
+            profile = user.profile
+        except Exception:
+            profile = None
+        ctx['profile'] = profile
+
+        # Placeholders: sustituir por consultas optimizadas según necesidad.
+        ctx['recent_notifications'] = getattr(user, 'notifications', None)[:10]
+        ctx['recent_posts'] = getattr(user, 'posts', None)[:10]
+
+        # Ejemplo: estado de sesión de estudio activo (si existe app study)
+        # from study.models import StudySession  # import local si se necesita
+        # ctx['active_session'] = StudySession.objects.filter(
+        #     user=user, end_time__isnull=True
+        # ).first()
+
+        return ctx
