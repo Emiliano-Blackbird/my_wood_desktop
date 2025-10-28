@@ -1,0 +1,7 @@
+{% extends 'general/layout.html' %}
+{% block title %}Perfil - {{ profile.user.username }}{% endblock %}
+{% block content %}
+<h1>{{ profile.user.username }}</h1>
+<img src="{{ profile.profile_picture.url }}" alt="" />
+<p>{{ profile.bio }}</p>
+{% endblock %}

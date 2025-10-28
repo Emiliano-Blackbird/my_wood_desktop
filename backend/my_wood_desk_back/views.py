@@ -1,19 +1,18 @@
 from django.views.generic import TemplateView, CreateView
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404
+from .forms import RegisterForm
 
 """
-Vistas del proyecto "my_wood_desk_back".
-
-- Páginas estáticas como TemplateView.
-- Registrar y manejar autenticación aquí para mantener plantillas
-  simples (LoginView/LogoutView delegadas a las clases de Django).
-- Dashboard protegido muestra datos básicos del usuario y sirve
-  como punto de integración para componentes globales (widgets,
-  estadísticas, notificaciones).
+Vistas del proyecto "my_wood_desk_back":
+- HomeView: Página de inicio pública.
+- LegalView: Página de términos y condiciones.
+- LoginView: Wrapper sobre la vista de login de Django.
+- LogoutView: Logout simple.
+- RegisterView: Registro de usuarios con validación de email.
+- DashboardView: Panel principal del usuario con widgets básicos.
 """
 
 
@@ -42,20 +41,16 @@ class LogoutView(auth_views.LogoutView):
 
 class RegisterView(CreateView):
     """
-    Usa el UserCreationForm por simplicidad. Si necesitas campos
-    adicionales (email, profile, etc.) sustituir por un form personalizado.
+    Registro de usuarios con validación de email.
     """
     template_name = "general/register.html"
-    form_class = UserCreationForm
+    form_class = RegisterForm
     success_url = reverse_lazy('login')
 
     def form_valid(self, form):
-        """
-        Método invocado cuando el formulario es válido.
-        Mantenerlo simple: guardar usuario y permitir señales (signals)
-        para crear UserProfile u otras tareas (ver profiles.signals).
-        """
         response = super().form_valid(form)
+        # Aquí puedo agregar lógica adicional post-registro
+        # Por ejemplo: enviar email de bienvenida, crear perfil, etc.
         return response
 
 

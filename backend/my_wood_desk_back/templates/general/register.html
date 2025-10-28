@@ -1,18 +1,67 @@
 {% extends 'general/layout.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
 
 {% block title %}Registro | My Wood Desktop{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        background-color: #f8f9fa;
+    }
+
+    .auth-box {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .auth-box h1 {
+        margin-bottom: 1.5rem;
+        text-align: center;
+        color: #333;
+    }
+
+    .auth-links {
+        text-align: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="auth-container">
     <div class="auth-box">
-        <h1>Crear Cuenta</h1>
-        <form method="post" class="auth-form">
+        <h1>Crear cuenta</h1>
+
+        {% if messages %}
+            <div class="messages mb-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="auth-form" novalidate>
             {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Registrarse</button>
+            {{ form|crispy }}
+            <div class="form-actions d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">Registrarse</button>
+            </div>
         </form>
+
         <div class="auth-links">
-            <p>¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a></p>
+            <p class="mb-0">¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a></p>
         </div>
     </div>
 </div>
