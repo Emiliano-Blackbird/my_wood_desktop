@@ -2,12 +2,11 @@ from django.views.generic import TemplateView, CreateView
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.shortcuts import get_object_or_404
-from .forms import RegisterForm
+from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib.auth import login, logout
 from django.contrib import messages
-from django.contrib.auth import logout
-from django.shortcuts import redirect
 from django.views import View
+from .forms import LoginForm, RegisterForm
 
 """
 Vistas del proyecto "my_wood_desk_back":
@@ -29,13 +28,33 @@ class LegalView(TemplateView):
     template_name = "general/legal.html"
 
 
-class LoginView(auth_views.LoginView):
-    """
-    Wrapper sobre la vista de login de Django.
-    Para fijar la plantilla por defecto y centralizar
-    comportamiento (p. ej. next page).
-    """
-    template_name = "general/login.html"
+class LoginView(View):
+    template_name = 'general/login.html'
+    
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('dashboard')
+        form = LoginForm()
+        return render(request, self.template_name, {'form': form})
+    
+    def post(self, request):
+        form = LoginForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            
+            # Manejar "Recordarme"
+            if not form.cleaned_data.get('remember_me'):
+                request.session.set_expiry(0)  # Expira al cerrar navegador
+            
+            messages.success(request, f'¡Bienvenido de nuevo, {user.username}!')
+            
+            # Redirigir a 'next' o dashboard
+            next_url = request.GET.get('next', 'dashboard')
+            return redirect(next_url)
+        else:
+            messages.error(request, 'Por favor corrige los errores del formulario.')
+            return render(request, self.template_name, {'form': form})
 
 
 class LogoutView(View):
@@ -99,8 +118,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ctx['profile'] = profile
 
         # Placeholders: sustituir por consultas optimizadas según necesidad.
-        ctx['recent_notifications'] = getattr(user, 'notifications', None)[:10]
-        ctx['recent_posts'] = getattr(user, 'posts', None)[:10]
+        ctx['recent_notifications'] = getattr(user, 'notifications', None)
+        ctx['recent_posts'] = getattr(user, 'posts', None)
 
         # Ejemplo: estado de sesión de estudio activo (si existe app study)
         # from study.models import StudySession  # import local si se necesita
