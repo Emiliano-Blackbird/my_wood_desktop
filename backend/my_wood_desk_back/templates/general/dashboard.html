@@ -3,48 +3,111 @@
 {% block title %}Dashboard | My Wood Desktop{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <div class="dashboard-header">
-        <h1>Mi Escritorio</h1>
-        <p>Bienvenido, {{ user.username }}</p>
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-0">Mi Escritorio</h1>
+      <small class="text-muted">Bienvenido, {{ user.get_full_name|default:user.username }}</small>
+    </div>
+    <div>
+      <a href="{% url 'chat:list' %}" class="btn btn-outline-primary me-2">Ir al Chat</a>
+      <a href="{% url 'study:create_session' %}" class="btn btn-primary">Iniciar Sesión de Estudio</a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-header">
+          Sesión de Estudio
+        </div>
+        <div class="card-body">
+          <!-- Placeholder: reemplazar por estado real de sesión activa -->
+          {% if active_session %}
+            <p>Estás estudiando: <strong>{{ active_session.subject.name }}</strong></p>
+            <p>Inició: {{ active_session.start_time }}</p>
+            <a href="{% url 'study:end_session' active_session.pk %}" class="btn btn-sm btn-danger">Finalizar</a>
+          {% else %}
+            <p>No hay sesión activa.</p>
+            <a href="{% url 'study:start' %}" class="btn btn-sm btn-primary">Iniciar sesión</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">Pomodoro</div>
+        <div class="card-body">
+          <!-- Placeholder para widget Pomodoro -->
+          <p>Configura y ejecuta tu temporizador Pomodoro aquí.</p>
+          <a href="{% url 'study:pomodoro' %}" class="btn btn-sm btn-outline-secondary">Abrir Pomodoro</a>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">Posts Recientes</div>
+        <ul class="list-group list-group-flush">
+          {% if recent_posts %}
+            {% for post in recent_posts %}
+              <li class="list-group-item">
+                <a href="{% url 'posts:detail' post.pk %}">{{ post.caption|truncatechars:80 }}</a>
+                <div class="small text-muted">{{ post.created_at|date:"SHORT_DATETIME_FORMAT" }}</div>
+              </li>
+            {% endfor %}
+          {% else %}
+            <li class="list-group-item">No hay posts recientes</li>
+          {% endif %}
+        </ul>
+      </div>
     </div>
 
-    <div class="dashboard-grid">
-        <div class="widget study-session">
-            <h2>Sesión de Estudio</h2>
-            <!-- Widget de sesión activa -->
+    <aside class="col-lg-4">
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Chat — conversaciones</span>
+          <a href="{% url 'chat:list' %}" class="small">Ver todas</a>
         </div>
-
-        <div class="widget pomodoro">
-            <h2>Pomodoro</h2>
-            <!-- Widget de pomodoro -->
-        </div>
-
-        <div class="widget notifications">
-            <h2>Notificaciones</h2>
-            {% if recent_notifications %}
-                <ul class="notifications-list">
-                    {% for notification in recent_notifications %}
-                        <li>{{ notification.message }}</li>
-                    {% endfor %}
-                </ul>
+        <ul class="list-group list-group-flush">
+          {% with convs=conversations|default:request.user.conversations.all %}
+            {% if convs %}
+              {% for conv in convs|slice:":6" %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                  <div>
+                    <a href="{% url 'chat:detail' conv.pk %}" class="stretched-link">
+                      {% for p in conv.participants.all %}
+                        {% if p != request.user %}{{ p.get_full_name|default:p.username }}{% endif %}
+                      {% endfor %}
+                    </a>
+                    <div class="small text-muted">{{ conv.updated_at|timesince }} atrás</div>
+                  </div>
+                  {% if conv.unread_count %}
+                    <span class="badge bg-danger rounded-pill">{{ conv.unread_count }}</span>
+                  {% endif %}
+                </li>
+              {% endfor %}
             {% else %}
-                <p>No hay notificaciones nuevas</p>
+              <li class="list-group-item">No hay conversaciones</li>
             {% endif %}
-        </div>
+          {% endwith %}
+        </ul>
+      </div>
 
-        <div class="widget recent-posts">
-            <h2>Posts Recientes</h2>
-            {% if recent_posts %}
-                <ul class="posts-list">
-                    {% for post in recent_posts %}
-                        <li>{{ post.caption }}</li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No hay posts recientes</p>
-            {% endif %}
-        </div>
-    </div>
+      <div class="card">
+        <div class="card-header">Notificaciones</div>
+        <ul class="list-group list-group-flush">
+          {% if recent_notifications %}
+            {% for n in recent_notifications|slice:":6" %}
+              <li class="list-group-item">
+                <strong>{{ n.title }}</strong>
+                <div class="small text-muted">{{ n.created_at|timesince }} atrás</div>
+                <div class="mt-1">{{ n.message|truncatechars:80 }}</div>
+              </li>
+            {% endfor %}
+          {% else %}
+            <li class="list-group-item">No hay notificaciones nuevas</li>
+          {% endif %}
+        </ul>
+      </div>
+    </aside>
+  </div>
 </div>
 {% endblock %}

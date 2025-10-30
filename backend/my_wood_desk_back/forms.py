@@ -8,6 +8,7 @@ from crispy_forms.layout import Layout, Submit
 User = get_user_model()
 
 
+# Con UserCreationForm se utiliza PasswordInput y aplica validaciones de seguridad
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(
         label=_('Email'),

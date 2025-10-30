@@ -53,6 +53,9 @@ class Notification(models.Model):
     title = models.CharField(_('título'), max_length=255)
     message = models.TextField(_('mensaje'))
 
+    # Link opcional para redirigir al hacer clic
+    link = models.URLField(_('enlace'), max_length=500, blank=True, null=True)
+
     # Prioridad para determinar estilo visual y comportamiento
     priority = models.CharField(
         _('prioridad'),

@@ -4,6 +4,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404
 from .forms import RegisterForm
+from django.contrib import messages
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+from django.views import View
 
 """
 Vistas del proyecto "my_wood_desk_back":
@@ -34,9 +38,17 @@ class LoginView(auth_views.LoginView):
     template_name = "general/login.html"
 
 
-class LogoutView(auth_views.LogoutView):
-    """Logout simple; puede redirigir a 'home' vía configuración o urls."""
-    next_page = "/"  # Redirigir a la página de inicio tras logout
+class LogoutView(View):
+    """Cierre de sesión del usuario."""
+    def get(self, request):
+        logout(request)
+        messages.info(request, 'Has cerrado sesión correctamente.')
+        return redirect('home')
+
+    def post(self, request):
+        logout(request)
+        messages.info(request, 'Has cerrado sesión correctamente.')
+        return redirect('home')
 
 
 class RegisterView(CreateView):
@@ -49,9 +61,18 @@ class RegisterView(CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        # Aquí puedo agregar lógica adicional post-registro
-        # Por ejemplo: enviar email de bienvenida, crear perfil, etc.
+        messages.success(
+            self.request,
+            f'¡Cuenta creada exitosamente! Ya puedes iniciar sesión como {self.object.username}.'
+        )
         return response
+
+    def form_invalid(self, form):
+        messages.error(
+            self.request,
+            'Por favor corrige los errores en el formulario.'
+        )
+        return super().form_invalid(form)
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
