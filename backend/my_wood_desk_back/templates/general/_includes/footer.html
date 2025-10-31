@@ -1,5 +1,120 @@
-<footer>
+<footer class="bg-dark text-light mt-5 py-4">
     <div class="container">
-        <p>Copyright 2025 My Wood Desk. Todos los derechos reservados.</p>
+        <div class="row">
+
+            <!-- Información de la marca -->
+            <div class="col-md-4 mb-3 mb-md-0">
+                <h5 class="text-primary mb-3">
+                    <i class="bi bi-columns-gap me-2"></i>
+                    My Wood Desk
+                </h5>
+                <p class="text-white-50 small">
+                    Tu espacio personal de estudio y productividad que
+                    te conecta con personas que estudian lo mismo que tú.
+                </p>
+
+                <!-- Redes sociales -->
+                <div class="social-links">
+                    <a href="https://www.instagram.com/emiliano.blackbird" class="link-light me-3" aria-label="Instagram">
+                        <i class="bi bi-instagram fs-5"></i>
+                    </a>
+                    <a href="https://github.com/Emiliano-Blackbird" class="link-light" aria-label="GitHub">
+                        <i class="bi bi-github fs-5"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Menú -->
+            <div class="col-md-4 mb-3 mb-md-0">
+                <h6 class="text-uppercase mb-3">Menú</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="{% url 'home' %}" class="link-light text-decoration-none">
+                            <i class="bi bi-house-door me-1"></i>
+                            Volver a Inicio
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="mb-2">
+                            <a href="{% url 'dashboard' %}" class="link-light text-decoration-none">
+                                <i class="bi bi-kanban me-1"></i>
+                                Mi Escritorio
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="mb-2">
+                        <a href="{% url 'legal' %}" class="link-light text-decoration-none">
+                            <i class="bi bi-shield-check me-1"></i>
+                            Términos y Privacidad
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Información de contacto -->
+            <div class="col-md-4">
+                <h6 class="text-uppercase mb-3">Contacto</h6>
+                <ul class="list-unstyled text-white-50 small">
+                    <li class="mb-2">
+                        <i class="bi bi-envelope me-2"></i>
+                        <a href="mailto:soporte@mywooddesk.com" class="link-light text-decoration-none">
+                            emilianoperezpaponi@gmail.com
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Newsletter -->
+                <div class="mt-3">
+                    <h6 class="text-uppercase mb-2 small text-white-50">Newsletter</h6>
+                    <form class="input-group input-group-sm">
+                        <input type="email" class="form-control bg-transparent text-light border-light" placeholder="Tu email" aria-label="Email">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Copyright -->
+        <hr class="my-4 border-secondary">
+        <div class="row">
+            <div class="col-md-6 text-center text-md-start">
+                <p class="mb-0 small text-white-50">
+                    <i class="bi bi-c-circle me-1"></i>
+                    {{ current_year|default:"2025" }} My Wood Desk. Todos los derechos reservados.
+                </p>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <span class="text-white-50 small">
+                    Hecho con 
+                    <i class="bi bi-heart-fill text-danger"></i>
+                    usando Django & Bootstrap
+                </span>
+            </div>
+        </div>
     </div>
 </footer>
+
+<!-- Botón scroll to top -->
+<button id="scrollToTop" class="btn btn-primary position-fixed bottom-0 end-0 m-3 rounded-circle shadow" 
+        style="display: none; width: 50px; height: 50px; z-index: 1000;">
+    <i class="bi bi-arrow-up"></i>
+</button>
+
+<script>
+    // Scroll to top functionality
+    const scrollBtn = document.getElementById('scrollToTop');
+
+    window.addEventListener('scroll', () => {
+        if (window.pageYOffset > 300) {
+            scrollBtn.style.display = 'block';
+        } else {
+            scrollBtn.style.display = 'none';
+        }
+    });
+
+    scrollBtn?.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+</script>

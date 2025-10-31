@@ -30,25 +30,25 @@ class LegalView(TemplateView):
 
 class LoginView(View):
     template_name = 'general/login.html'
-    
+
     def get(self, request):
         if request.user.is_authenticated:
             return redirect('dashboard')
         form = LoginForm()
         return render(request, self.template_name, {'form': form})
-    
+
     def post(self, request):
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            
+
             # Manejar "Recordarme"
             if not form.cleaned_data.get('remember_me'):
                 request.session.set_expiry(0)  # Expira al cerrar navegador
-            
+
             messages.success(request, f'¡Bienvenido de nuevo, {user.username}!')
-            
+
             # Redirigir a 'next' o dashboard
             next_url = request.GET.get('next', 'dashboard')
             return redirect(next_url)

@@ -77,6 +77,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # Context processors personalizados
+                'my_wood_desk_back.context_processors.navigation_counts',
+                'my_wood_desk_back.context_processors.site_info',
             ],
         },
     },
