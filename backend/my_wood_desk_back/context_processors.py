@@ -3,12 +3,15 @@ from datetime import datetime
 
 def navigation_counts(request):
     """Context processor para contadores en el header."""
-    if not request.user.is_authenticated:
-        return {}
-
-    # Inicializar contadores
+    # Retornar contadores por defecto para evitar variables faltantes en templates
     unread_messages = 0
     unread_notifications = 0
+
+    if not getattr(request, "user", None) or not request.user.is_authenticated:
+        return {
+            'unread_messages_count': unread_messages,
+            'unread_notifications_count': unread_notifications,
+        }
 
     try:
         if hasattr(request.user, 'received_messages'):
@@ -18,9 +21,9 @@ def navigation_counts(request):
         elif hasattr(request.user, 'messages'):
             unread_messages = request.user.messages.filter(is_read=False).count()
     except Exception:
+        # fallo silencioso: deja contador en 0
         pass
 
-    # Notificaciones no leídas
     try:
         if hasattr(request.user, 'notifications'):
             unread_notifications = request.user.notifications.filter(is_read=False).count()

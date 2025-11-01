@@ -11,7 +11,7 @@
     </div>
     <div>
       <a href="{% url 'chat:list' %}" class="btn btn-outline-primary me-2">Ir al Chat</a>
-      <a href="{% url 'study:create_session' %}" class="btn btn-primary">Iniciar Sesión de Estudio</a>
+      <a href="{% url 'study:start_session' %}" class="btn btn-primary">Iniciar Sesión de Estudio</a>
     </div>
   </div>
 
@@ -29,7 +29,7 @@
             <a href="{% url 'study:end_session' active_session.pk %}" class="btn btn-sm btn-danger">Finalizar</a>
           {% else %}
             <p>No hay sesión activa.</p>
-            <a href="{% url 'study:start' %}" class="btn btn-sm btn-primary">Iniciar sesión</a>
+            <a href="{% url 'study:start_session' %}" class="btn btn-sm btn-primary">Iniciar sesión</a>
           {% endif %}
         </div>
       </div>

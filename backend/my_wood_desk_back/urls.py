@@ -20,4 +20,5 @@ urlpatterns = [
     path('profiles/', include('profiles.urls', namespace='profiles')),
     path('chat/', include('chat.urls', namespace='chat')),
     path('notifications/', include('notifications.urls', namespace='notifications')),
+    path('study/', include(('study.urls', 'study'), namespace='study')),
 ]

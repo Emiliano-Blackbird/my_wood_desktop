@@ -117,9 +117,22 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             profile = None
         ctx['profile'] = profile
 
-        # Placeholders: sustituir por consultas optimizadas según necesidad.
-        ctx['recent_notifications'] = getattr(user, 'notifications', None)
-        ctx['recent_posts'] = getattr(user, 'posts', None)
+        # Pasar querysets/listas, no RelatedManager
+        try:
+            ctx['recent_notifications'] = user.notifications.all()[:6]
+        except Exception:
+            ctx['recent_notifications'] = []
+
+        try:
+            ctx['recent_posts'] = user.posts.all().order_by('-created_at')[:6]
+        except Exception:
+            ctx['recent_posts'] = []
+
+        # Conversaciones (si existen)
+        try:
+            ctx['conversations'] = user.conversations.all().order_by('-updated_at')[:6]
+        except Exception:
+            ctx['conversations'] = []
 
         # Ejemplo: estado de sesión de estudio activo (si existe app study)
         # from study.models import StudySession  # import local si se necesita
