@@ -8,4 +8,5 @@ urlpatterns = [
     path('<int:pk>/', views.ConversationDetailView.as_view(), name='detail'),
     path('start/', views.StartConversationView.as_view(), name='start'),
     path('read/', views.MarkConversationReadView.as_view(), name='mark_read'),
+    path('<int:pk>/delete/', views.ConversationDeleteView.as_view(), name='delete'),
 ]

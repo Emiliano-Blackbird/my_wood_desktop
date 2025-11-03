@@ -8,6 +8,7 @@ from django.views import View
 from django.views.generic import ListView, DetailView
 from django.db import transaction
 from .models import Conversation, Message
+from django.contrib import messages
 
 User = get_user_model()
 
@@ -55,10 +56,16 @@ class ConversationDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        # traer mensajes ordenados y forzar evaluación en lista para evitar RelatedManager errors
         try:
-            msgs_qs = self.object.messages.select_related("sender").order_by("created_at")
-            ctx["messages"] = list(msgs_qs)
+            msgs_qs = (
+                self.object.messages.select_related("sender")
+                .order_by("created_at")
+            )
+            msgs = list(msgs_qs)
+            # añadir atributo 'text' seguro para la plantilla
+            for m in msgs:
+                m.text = getattr(m, "content", None) or getattr(m, "body", None) or ""
+            ctx["messages"] = msgs
         except Exception:
             ctx["messages"] = []
         return ctx
@@ -105,6 +112,28 @@ class ConversationDetailView(LoginRequiredMixin, DetailView):
                 }
             })
         return redirect(conv.get_absolute_url() if hasattr(conv, "get_absolute_url") else reverse("chat:detail", args=[conv.pk]))
+
+
+class ConversationDeleteView(LoginRequiredMixin, View):
+    """Eliminar una conversación (solo participantes)."""
+    def post(self, request, pk, *args, **kwargs):
+        conv = get_object_or_404(Conversation, pk=pk)
+        if not conv.participants.filter(pk=request.user.pk).exists():
+            return HttpResponseForbidden("No autorizado")
+
+        try:
+            with transaction.atomic():
+                conv.delete()
+                messages.success(request, "Conversación eliminada.")
+        except Exception:
+            messages.error(request, "No se pudo eliminar la conversación.")
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"ok": False, "error": "delete_failed"}, status=500)
+            return redirect(reverse("chat:list"))
+
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"ok": True, "redirect": reverse("chat:list")})
+        return redirect(reverse("chat:list"))
 
 
 class StartConversationView(LoginRequiredMixin, View):

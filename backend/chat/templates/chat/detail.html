@@ -10,7 +10,18 @@
           {% if p != request.user %}{{ p.get_full_name|default:p.username }}{% endif %}
         {% endfor %}
       </div>
-      <small class="text-muted">{{ conversation.updated_at|timesince }} atrás</small>
+
+      <div class="d-flex align-items-center">
+        <small class="text-muted me-3">{{ conversation.updated_at|timesince }} atrás</small>
+
+        <form method="post" action="{% url 'chat:delete' conversation.pk %}"
+              onsubmit="return confirm('¿Eliminar conversación? Esta acción no se puede deshacer.');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-danger">
+            Eliminar
+          </button>
+        </form>
+      </div>
     </div>
 
     <div class="card-body" id="messagesContainer" style="max-height:60vh; overflow:auto;">

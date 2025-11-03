@@ -5,10 +5,11 @@
 <div class="container py-4">
   <h2 class="h4 mb-3">Conversaciones</h2>
 
-  <div class="list-group">
-    {% for conv in conversations %}
-      <a href="{% url 'chat:detail' conv.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
-        <div class="me-2">
+<div class="list-group">
+  {% for conv in conversations %}
+    <div class="list-group-item d-flex justify-content-between align-items-start">
+      <div class="me-2 flex-grow-1">
+        <a href="{% url 'chat:detail' conv.pk %}" class="text-decoration-none text-reset d-block">
           <strong>
             {% for p in conv.participants.all %}
               {% if p != request.user %}{{ p.get_full_name|default:p.username }}{% endif %}
@@ -17,18 +18,25 @@
           <div class="small text-muted">
             {{ conv.last_message|default:conv.last_message_preview|truncatechars:80 }}
           </div>
-        </div>
+        </a>
+      </div>
 
-        <div class="text-end">
-          <div class="small text-muted">{{ conv.updated_at|timesince }} atrás</div>
-          {% if conv.unread_count %}
-            <span class="badge bg-danger rounded-pill">{{ conv.unread_count }}</span>
-          {% endif %}
-        </div>
-      </a>
-    {% empty %}
-      <div class="list-group-item">No hay conversaciones</div>
-    {% endfor %}
-  </div>
+      <div class="text-end">
+        <div class="small text-muted">{{ conv.updated_at|timesince }} atrás</div>
+        {% if conv.unread_count %}
+          <span class="badge bg-danger rounded-pill">{{ conv.unread_count }}</span>
+        {% endif %}
+
+        <form method="post" action="{% url 'chat:delete' conv.pk %}" class="d-inline-block mt-2"
+              onsubmit="return confirm('¿Eliminar conversación? Esta acción no se puede deshacer.');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+        </form>
+      </div>
+    </div>
+  {% empty %}
+    <div class="list-group-item">No hay conversaciones</div>
+  {% endfor %}
+</div>
 </div>
 {% endblock %}
