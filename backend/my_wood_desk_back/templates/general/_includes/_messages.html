@@ -1,4 +1,5 @@
-{% if messages %}
+{# No mostrar toasts cuando el user está viendo una conversación #}
+{% if messages and not conversation and not suppress_messages %}
   <div class="messages-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
     {% for message in messages %}
       {# Mapear tags a clases e iconos de Bootstrap sin usar {% set %} #}

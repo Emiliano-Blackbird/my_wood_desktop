@@ -1,3 +1,4 @@
+# ...existing code...
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse, HttpResponseForbidden
@@ -5,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views import View
 from django.views.generic import ListView, DetailView
+from django.db import transaction
 from .models import Conversation, Message
 
 User = get_user_model()
@@ -13,15 +15,27 @@ User = get_user_model()
 class ConversationListView(LoginRequiredMixin, ListView):
     """Listado de conversaciones del usuario."""
     model = Conversation
-    template_name = "chat/conversation_list.html"
+    template_name = "chat/list.html"
     context_object_name = "conversations"
 
     def get_queryset(self):
-        return (
+        qs = (
             Conversation.objects.filter(participants=self.request.user)
-            .prefetch_related("participants")
+            .prefetch_related(
+                "participants", "messages__sender", "messages__read_by"
+            )
             .order_by("-updated_at")
         )
+        # Forzar evaluación y añadir atributos útiles para la plantilla
+        convs = list(qs)
+        for conv in convs:
+            try:
+                conv.unread_count = conv.messages.exclude(
+                    read_by=self.request.user
+                ).count()
+            except Exception:
+                conv.unread_count = 0
+        return convs
 
 
 class ConversationDetailView(LoginRequiredMixin, DetailView):
@@ -30,44 +44,64 @@ class ConversationDetailView(LoginRequiredMixin, DetailView):
     Permite enviar mensajes vía POST (form simple) o AJAX.
     """
     model = Conversation
-    template_name = "chat/conversation_detail.html"
+    template_name = "chat/detail.html"
     context_object_name = "conversation"
 
     def get_object(self, queryset=None):
         conv = super().get_object(queryset)
         if not conv.participants.filter(pk=self.request.user.pk).exists():
-            raise HttpResponseForbidden("No tienes acceso a esta conversación.")
+            raise HttpResponseForbidden("No tienes acceso a esta conversación")
         return conv
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        # traer mensajes ordenados y limitar si es necesario
-        ctx["messages"] = self.object.messages.select_related("sender").order_by("created_at")
+        # traer mensajes ordenados y forzar evaluación en lista para evitar RelatedManager errors
+        try:
+            msgs_qs = self.object.messages.select_related("sender").order_by("created_at")
+            ctx["messages"] = list(msgs_qs)
+        except Exception:
+            ctx["messages"] = []
         return ctx
 
     def post(self, request, *args, **kwargs):
-        """Enviar un mensaje (form submit o AJAX)."""
+        """Enviar un mensaje (form submit o AJAX). Acepta 'content' o 'body' del form."""
         conv = self.get_object()
-        content = request.POST.get("content", "").strip()
+        content = (request.POST.get("content") or request.POST.get("body") or "").strip()
         if not content:
-            if request.is_ajax():
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"ok": False, "error": "Contenido vacío"}, status=400)
             return redirect(conv.get_absolute_url() if hasattr(conv, "get_absolute_url") else reverse("chat:detail", args=[conv.pk]))
 
-        msg = Message.objects.create(conversation=conv, sender=request.user, content=content)
-        # marcar como leído por el remitente
-        msg.read_by.add(request.user)
-        # actualizar la conversación (si usas updated_at en el modelo)
-        Conversation.objects.filter(pk=conv.pk).update(updated_at=msg.created_at)
+        # Crear mensaje (campo 'content' es el estándar en tu modelo)
+        try:
+            msg = Message.objects.create(conversation=conv, sender=request.user, content=content)
+        except Exception:
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"ok": False, "error": "No se pudo crear el mensaje"}, status=500)
+            return redirect(conv.get_absolute_url() if hasattr(conv, "get_absolute_url") else reverse("chat:detail", args=[conv.pk]))
 
-        if request.is_ajax():
+        # marcar como leído por el remitente (si existe la relación read_by)
+        try:
+            msg.read_by.add(request.user)
+        except Exception:
+            pass
+
+        # actualizar updated_at de la conversación si procede (seguridad adicional)
+        try:
+            timestamp = getattr(msg, "created_at", None)
+            if timestamp is not None:
+                Conversation.objects.filter(pk=conv.pk).update(updated_at=timestamp)
+        except Exception:
+            pass
+
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
             return JsonResponse({
                 "ok": True,
                 "message": {
                     "id": msg.pk,
                     "sender": request.user.username,
                     "content": msg.content,
-                    "created_at": msg.created_at.isoformat(),
+                    "created_at": msg.created_at.isoformat() if getattr(msg, "created_at", None) else None,
                 }
             })
         return redirect(conv.get_absolute_url() if hasattr(conv, "get_absolute_url") else reverse("chat:detail", args=[conv.pk]))
@@ -76,8 +110,9 @@ class ConversationDetailView(LoginRequiredMixin, DetailView):
 class StartConversationView(LoginRequiredMixin, View):
     """
     Inicia una conversación entre el usuario y otro usuario.
-    Si ya existe, redirige a la existente.
-    Espera 'user_id' (POST) o 'username' (GET/POST).
+    Si ya existe, devuelve la existente.
+    Espera 'user_id' (POST) o 'username' (POST).
+    Responde JSON (útil para frontend JS).
     """
     def post(self, request, *args, **kwargs):
         other_id = request.POST.get("user_id")
@@ -94,7 +129,7 @@ class StartConversationView(LoginRequiredMixin, View):
         if other == request.user:
             return JsonResponse({"ok": False, "error": "No puedes iniciar conversación contigo mismo."}, status=400)
 
-        # buscar conversación existente entre los dos
+        # Buscar conversación existente entre los dos
         conv = (
             Conversation.objects.filter(participants=request.user)
             .filter(participants=other)
@@ -102,10 +137,16 @@ class StartConversationView(LoginRequiredMixin, View):
             .first()
         )
 
-        if not conv:
-            conv = Conversation.objects.create()
-            conv.participants.add(request.user, other)
-            conv.save()
+        if conv:
+            return JsonResponse({"ok": True, "conversation_id": conv.pk, "url": reverse("chat:detail", args=[conv.pk])})
+
+        # Crear nueva conversación con transacción
+        try:
+            with transaction.atomic():
+                conv = Conversation.objects.create()
+                conv.participants.add(request.user, other)
+        except Exception:
+            return JsonResponse({"ok": False, "error": "No se pudo crear la conversación"}, status=500)
 
         return JsonResponse({"ok": True, "conversation_id": conv.pk, "url": reverse("chat:detail", args=[conv.pk])})
 
@@ -113,7 +154,6 @@ class StartConversationView(LoginRequiredMixin, View):
 class MarkConversationReadView(LoginRequiredMixin, View):
     """
     Marca todos los mensajes de una conversación como leídos por el usuario.
-    Útil para llamadas AJAX desde el cliente al abrir la conversación.
     """
     def post(self, request, *args, **kwargs):
         conv_id = request.POST.get("conversation_id")
@@ -122,6 +162,8 @@ class MarkConversationReadView(LoginRequiredMixin, View):
             return JsonResponse({"ok": False, "error": "No autorizado"}, status=403)
 
         unread_messages = conv.messages.exclude(read_by=request.user)
+        count = 0
         for msg in unread_messages:
             msg.read_by.add(request.user)
-        return JsonResponse({"ok": True, "marked": unread_messages.count()})
+            count += 1
+        return JsonResponse({"ok": True, "marked": count})

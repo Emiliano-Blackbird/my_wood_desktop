@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django_extensions',  # Extensiones de Django
     'crispy_forms',
     'crispy_bootstrap5',
+    'django.contrib.humanize',  # Filtros humanizadores en plantillas
     # 'rest_framework',  # API REST framework
     # 'corsheaders',  # Soporte para CORS (React)
 

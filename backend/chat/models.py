@@ -31,6 +31,39 @@ class Conversation(models.Model):
             return f"Chat: {' & '.join(user.username for user in participants)}"
         return f"Conversación {self.id}"
 
+    def last_message_obj(self):
+        """Devuelve el último Message (obj) o None."""
+        return (
+            self.messages.select_related("sender")
+            .order_by("-created_at")
+            .first()
+        )
+
+    @property
+    def last_message(self):
+        """Texto del último mensaje o cadena vacía."""
+        lm = self.last_message_obj()
+        if not lm:
+            return ""
+        return getattr(lm, "content", getattr(lm, "body", "")) or ""
+
+    @property
+    def last_message_preview(self):
+        """Preview truncada del último mensaje (máx. 80 chars)."""
+        text = self.last_message or ""
+        if len(text) <= 80:
+            return text
+        return text[:77] + "..."
+
+    def unread_count_for(self, user):
+        """Número de mensajes no leídos para un usuario dado."""
+        if user is None:
+            return 0
+        try:
+            return self.messages.exclude(read_by=user).count()
+        except Exception:
+            return 0
+
 
 class Message(models.Model):
     """Mensaje individual en una conversación."""
