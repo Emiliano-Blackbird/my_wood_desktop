@@ -128,3 +128,21 @@ class RegisterForm(UserCreationForm):
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError(_('Este email ya está registrado.'))
         return email
+
+    def save(self):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        # Guardar dentro de una transacción para asegurar atomicidad
+        from django.db import transaction
+
+        with transaction.atomic():
+            user.save()
+            try:
+                from profiles.models import Profile
+                Profile.objects.create(user=user)
+            except Exception:
+                # si no existe el modelo Profile o falla, no romper el registro
+                # (puedes loguear aquí si lo deseas)
+                pass
+
+        return user

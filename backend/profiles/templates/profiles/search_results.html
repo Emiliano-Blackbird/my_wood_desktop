@@ -1,0 +1,34 @@
+{% extends "general/layout.html" %}
+{% block title %}Buscar usuarios{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h4>Resultados de búsqueda</h4>
+  <form class="mb-3" method="get" action="{% url 'profiles:search' %}">
+    <div class="input-group">
+      <input name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar usuarios...">
+      <button class="btn btn-outline-secondary" type="submit">Buscar</button>
+    </div>
+  </form>
+
+  {% if results %}
+    <div class="list-group">
+      {% for u in results %}
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <a href="{% url 'profiles:detail' u.username %}">
+              <strong>{{ u.get_full_name|default:u.username }}</strong>
+              <div class="small text-muted">@{{ u.username }}</div>
+            </a>
+          </div>
+          <div>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'profiles:detail' u.username %}">Ver</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No se encontraron usuarios.</p>
+  {% endif %}
+</div>
+{% endblock %}
