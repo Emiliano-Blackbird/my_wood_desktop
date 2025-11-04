@@ -26,6 +26,36 @@
       </div>
 
       <div class="card mb-3">
+        <div class="card-header">Amigos <small class="text-muted">({{ friends_count }})</small></div>
+        <div class="card-body">
+          {% if friends_list %}
+            <ul class="list-unstyled mb-0">
+              {% for f in friends_list|slice:":5" %}
+                <li>
+                  {% if f.username %}
+                    <a href="{% url 'profiles:detail' f.username %}">
+                      {{ f.get_full_name|default:f.username }}
+                    </a>
+                  {% elif f.user %}
+                    <a href="{% url 'profiles:detail' f.user.username %}">
+                      {{ f.user.get_full_name|default:f.user.username }}
+                    </a>
+                  {% else %}
+                    {{ f }}
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+            {% if friends_count > 5 %}
+              <div class="mt-2"><a href="{% url 'profiles:friends' profile_user.username %}">Ver todos</a></div>
+            {% endif %}
+          {% else %}
+            <p class="text-muted mb-0">No hay amigos todavía.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card mb-3">
         <div class="card-header">Logros</div>
         <div class="card-body">
           {% if achievements %}

@@ -180,7 +180,7 @@ class FriendRequest(models.Model):
 
 
 # Señal para crear UserProfile automáticamente al crear un User
-@receiver(post_save, sender=User)
-def create_profile_for_new_user(sender, instance, created, **kwargs):
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
