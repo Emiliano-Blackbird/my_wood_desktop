@@ -114,7 +114,7 @@ class StudySession(models.Model):
         verbose_name=_('usuario'),
     )
     subject = models.ForeignKey(
-        'posts.Subject',  # referencia a Subject del app posts
+        'study.Subject',
         on_delete=models.CASCADE,
         related_name='study_sessions',
         verbose_name=_('asignatura'),
@@ -142,9 +142,10 @@ class StudySession(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.subject.name} - {self.start_time.date()}"
+        return f"{self.subject.name if self.subject else 'Sin asignatura'} - {self.start_time.date()}"
 
     def save(self, *args, **kwargs):
+        # Calcula duration automáticamente si hay end_time
         if self.end_time and self.start_time:
             self.duration = self.end_time - self.start_time
         super().save(*args, **kwargs)
@@ -157,3 +158,16 @@ class StudySession(models.Model):
         if self.is_active:
             self.end_time = timezone.now()
             self.save()
+
+
+class Subject(models.Model):
+    name = models.CharField(_('nombre'), max_length=120)
+    description = models.TextField(_('descripción'), blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='subjects')
+
+    class Meta:
+        verbose_name = _('asignatura')
+        verbose_name_plural = _('asignaturas')
+
+    def __str__(self):
+        return self.name

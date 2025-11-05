@@ -4,6 +4,7 @@ from .views import (
     EndSessionView,
     SessionListView,
     PomodoroView,
+    SubjectCreateView,
 )
 
 app_name = "study"
@@ -13,4 +14,5 @@ urlpatterns = [
     path("start/", StartSessionView.as_view(), name="start_session"),
     path("end/<int:pk>/", EndSessionView.as_view(), name="end_session"),
     path("pomodoro/", PomodoroView.as_view(), name="pomodoro"),
+    path("subject/create/", SubjectCreateView.as_view(), name="subject_create"),
 ]

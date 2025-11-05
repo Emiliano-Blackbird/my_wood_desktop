@@ -93,7 +93,7 @@ class ConversationDetailView(LoginRequiredMixin, DetailView):
         except Exception:
             pass
 
-        # actualizar updated_at de la conversación si procede (seguridad adicional)
+        # actualizar updated_at de la conversación si procede
         try:
             timestamp = getattr(msg, "created_at", None)
             if timestamp is not None:

@@ -1,0 +1,27 @@
+{% extends "general/layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <h4>Iniciar sesión de estudio</h4>
+  <form method="post" action="{% url 'study:start_session' %}">
+    {% csrf_token %}
+    {% if subjects %}
+      <div class="mb-3">
+        <label for="subject" class="form-label">Asignatura</label>
+        <select id="subject" name="subject" class="form-select">
+          <option value="">-- Selecciona --</option>
+          {% for s in subjects %}
+            <option value="{{ s.pk }}">{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button class="btn btn-primary" type="submit">Iniciar sesión</button>
+    {% else %}
+      <div class="alert alert-warning">
+        No hay asignaturas.
+        <a class="btn btn-sm btn-outline-primary ms-2" href="{% url 'study:subject_create' %}">Crear asignatura</a>
+        <span class="d-block small mt-2">También puedes crear asignaturas desde el admin.</span>
+      </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

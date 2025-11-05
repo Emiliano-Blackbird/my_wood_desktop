@@ -1,0 +1,42 @@
+{% extends "general/layout.html" %}
+{% load static %}
+{% block title %}Pomodoro{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h4>Pomodoro</h4>
+
+  <div class="card p-3 mb-3" id="pomodoroCard">
+    <div class="row g-2 align-items-center">
+      <div class="col-auto">
+        <label class="form-label">Trabajo (min)</label>
+        <input id="pomWork" type="number" class="form-control" min="1" value="25">
+      </div>
+      <div class="col-auto">
+        <label class="form-label">Descanso (min)</label>
+        <input id="pomBreak" type="number" class="form-control" min="1" value="5">
+      </div>
+      <div class="col-auto">
+        <label class="form-label">Rondas</label>
+        <input id="pomRounds" type="number" class="form-control" min="1" value="4">
+      </div>
+      <div class="col-auto align-self-end">
+        <button id="pomStart" class="btn btn-primary">Iniciar</button>
+        <button id="pomStop" class="btn btn-outline-secondary d-none">Detener</button>
+      </div>
+      <div class="col-12 mt-3">
+        <div id="pomDisplay" class="h5">Listo</div>
+        <div id="pomProgress" class="progress mt-2" style="height:8px;">
+          <div id="pomBar" class="progress-bar" role="progressbar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="text-muted small">
+    El temporizador corre en el cliente. Si quieres registrar ciclos en el servidor, puedo añadir endpoints para guardar sesiones pomodoro.
+  </p>
+</div>
+
+<script src="{% static 'study/js/study.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "general/layout.html" %}
+{% block title %}Sesiones de estudio{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Mis sesiones</h4>
+    <div>
+      <a class="btn btn-sm btn-primary" href="{% url 'study:start_session' %}">Iniciar sesión</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'study:pomodoro' %}">Pomodoro</a>
+    </div>
+  </div>
+
+  {% if sessions %}
+    <div class="table-responsive">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Asignatura</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Duración</th>
+            <th>Notas</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in sessions %}
+            <tr>
+              <td>{{ s.subject.name }}</td>
+              <td>{{ s.start_time|date:"SHORT_DATETIME_FORMAT" }}</td>
+              <td>
+                {% if s.end_time %}
+                  {{ s.end_time|date:"SHORT_DATETIME_FORMAT" }}
+                {% else %}
+                  <span class="text-success">En curso</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if s.duration %}
+                  {% with total=s.duration.total_seconds %}
+                    {% with hours=total|divisibleby:3600 %}{% endwith %}
+                  {% endwith %}
+                  {{ s.duration }}
+                {% else %}
+                  {% if s.end_time %}
+                    -
+                  {% else %}
+                    En curso
+                  {% endif %}
+                {% endif %}
+              </td>
+              <td>{{ s.notes|default:"-" }}</td>
+              <td>
+                {% if s.end_time %}
+                  <span class="text-muted small">Finalizada</span>
+                {% else %}
+                  <form method="post" action="{% url 'study:end_session' s.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-danger" type="submit">Detener</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if is_paginated %}
+      <nav>
+        <ul class="pagination pagination-sm">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a></li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">«</span></li>
+          {% endif %}
+          <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a></li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">»</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+
+  {% else %}
+    <p class="text-muted">No tienes sesiones registradas.</p>
+  {% endif %}
+</div>
+{% endblock %}
