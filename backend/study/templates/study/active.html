@@ -1,0 +1,32 @@
+{% extends "general/layout.html" %}
+{% load static %}
+{% block title %}Sesión activa{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Sesión activa — {{ session.subject.name }}</h5>
+      <p class="text-muted mb-1">Iniciada: {{ session.start_time|date:"SHORT_DATETIME_FORMAT" }}</p>
+
+      <div id="activeTimer" data-start="{{ session.start_time|date:"c" }}" class="display-6">00:00:00</div>
+      <div id="smallPomDisplay" class="mt-2 text-muted small">Pomodoro: listo</div>
+
+      <div class="mt-4">
+        <form method="post" action="{% url 'study:end_session' session.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-danger">Finalizar sesión</button>
+          <a class="btn btn-secondary ms-2" href="{% url 'study:list' %}">Volver al listado</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- audio for pomodoro alerts (optional) -->
+<audio id="pomSound" preload="auto">
+  <source src="{% static 'study/sounds/alarm.mp3' %}" type="audio/mpeg">
+</audio>
+
+<script src="{% static 'study/js/study.js' %}"></script>
+{% endblock %}

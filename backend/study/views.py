@@ -8,6 +8,9 @@ from django.utils import timezone
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.contrib import messages
 from django.db import transaction
+from .models import StudySession, Subject, PomodoroSettings
+from django.urls import reverse
+
 
 from .models import StudySession, Subject
 from .forms import SubjectForm
@@ -36,7 +39,8 @@ class StartSessionView(LoginRequiredMixin, View):
                 subject=subject
             )
         messages.success(request, "Sesión iniciada.")
-        return redirect("dashboard")
+        # redirige a la vista activa para mostrar el reloj en tiempo real
+        return redirect(reverse("study:active_session", args=[session.pk]))
 
 
 class EndSessionView(LoginRequiredMixin, View):
@@ -46,7 +50,17 @@ class EndSessionView(LoginRequiredMixin, View):
         if session.end_time is None:
             session.end_time = timezone.now()
             session.save(update_fields=["end_time", "duration"])
-        return redirect("dashboard")
+        # después de finalizar vuelves al listado de sesiones
+        return redirect(reverse("study:list"))
+
+
+class ActiveSessionView(LoginRequiredMixin, TemplateView):
+    """Vista que muestra la sesión activa con reloj en tiempo real y botón para finalizar."""
+    template_name = "study/active.html"
+
+    def get(self, request, pk, *args, **kwargs):
+        session = get_object_or_404(StudySession, pk=pk, user=request.user)
+        return render(request, self.template_name, {"session": session})
 
 
 class SessionListView(LoginRequiredMixin, ListView):
@@ -57,6 +71,17 @@ class SessionListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return StudySession.objects.filter(user=self.request.user).select_related('subject').order_by("-start_time")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        active = StudySession.objects.filter(user=self.request.user, end_time__isnull=True).select_related('subject').first()
+        ctx['active_session'] = active
+        # Pomodoro settings for the user (may be None)
+        try:
+            ctx['pomodoro_settings'] = getattr(self.request.user, 'pomodoro_settings', None)
+        except Exception:
+            ctx['pomodoro_settings'] = None
+        return ctx
 
 
 class PomodoroView(LoginRequiredMixin, TemplateView):
