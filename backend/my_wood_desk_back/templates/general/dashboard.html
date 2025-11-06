@@ -10,8 +10,18 @@
       <small class="text-muted">Bienvenido, {{ user.get_full_name|default:user.username }}</small>
     </div>
     <div>
-      <a href="{% url 'chat:list' %}" class="btn btn-outline-primary me-2">Ir al Chat</a>
-      <a href="{% url 'study:start_session' %}" class="btn btn-primary">Iniciar Sesión de Estudio</a>
+      {# cleaned header: single chat button + either "Ver sesión activa" or "Iniciar Sesión" #}
+      <div class="d-flex gap-2 align-items-center">
+        <a href="{% url 'chat:list' %}" class="btn btn-outline-primary">Ir al Chat</a>
+
+        {% if active_session %}
+          <a class="btn btn-sm btn-warning" href="{% url 'study:active_session' active_session.pk %}">
+            Ver sesión activa — {{ active_session.subject.name }}
+          </a>
+        {% else %}
+          <a href="{% url 'study:start_session' %}" class="btn btn-primary">Iniciar Sesión de Estudio</a>
+        {% endif %}
+      </div>
     </div>
   </div>
 
@@ -22,11 +32,18 @@
           Sesión de Estudio
         </div>
         <div class="card-body">
-          <!-- Placeholder: reemplazar por estado real de sesión activa -->
           {% if active_session %}
             <p>Estás estudiando: <strong>{{ active_session.subject.name }}</strong></p>
             <p>Inició: {{ active_session.start_time }}</p>
-            <a href="{% url 'study:end_session' active_session.pk %}" class="btn btn-sm btn-danger">Finalizar</a>
+
+            {# use POST form to finalize session (end_session view expects POST) #}
+            <form method="post" action="{% url 'study:end_session' active_session.pk %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger">Finalizar</button>
+            </form>
+
+            <a class="btn btn-sm btn-secondary ms-2" href="{% url 'study:active_session' active_session.pk %}">Ver sesión</a>
+
           {% else %}
             <p>No hay sesión activa.</p>
             <a href="{% url 'study:start_session' %}" class="btn btn-sm btn-primary">Iniciar sesión</a>

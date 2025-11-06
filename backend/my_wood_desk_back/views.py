@@ -7,6 +7,7 @@ from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.views import View
 from .forms import LoginForm, RegisterForm
+from study.models import StudySession
 
 """
 Vistas del proyecto "my_wood_desk_back":
@@ -110,7 +111,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # Intentar añadir perfil si existe (signals suelen crearlo)
+        # Intentar añadir perfil si existe
         try:
             profile = user.profile
         except Exception:
@@ -134,10 +135,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         except Exception:
             ctx['conversations'] = []
 
-        # Ejemplo: estado de sesión de estudio activo (si existe app study)
-        # from study.models import StudySession  # import local si se necesita
-        # ctx['active_session'] = StudySession.objects.filter(
-        #     user=user, end_time__isnull=True
-        # ).first()
+        # Estado de sesión de estudio activo
+        try:
+            ctx['active_session'] = StudySession.objects.filter(
+                user=user, end_time__isnull=True
+            ).select_related('subject').first()
+        except Exception:
+            ctx['active_session'] = None
 
         return ctx
