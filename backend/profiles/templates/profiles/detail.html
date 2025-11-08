@@ -7,8 +7,9 @@
     <div class="col-md-4">
       <div class="card mb-3">
         <div class="card-body text-center">
-          {% if profile and profile.avatar %}
-            <img src="{{ profile.avatar.url }}" alt="{{ profile_user.username }}"
+          {# Usar profile.profile_picture (coincide con el modelo UserProfile.profile_picture) #}
+          {% if profile and profile.profile_picture %}
+            <img src="{{ profile.profile_picture.url }}" alt="{{ profile_user.username }}"
                  class="rounded-circle mb-2" width="120" height="120">
           {% else %}
             <i class="bi bi-person-circle fs-1 mb-2"></i>
@@ -17,7 +18,8 @@
           <p class="text-muted">@{{ profile_user.username }}</p>
 
           {% if can_send_request %}
-            <form method="post" action="{% url 'profiles:send_request' profile_user.username %}">
+            {# Asegúrate de que en profiles/urls.py exista name='send_friend_request' para esta ruta #}
+            <form method="post" action="{% url 'profiles:send_friend_request' profile_user.username %}">
               {% csrf_token %}
               <button class="btn btn-sm btn-primary" type="submit">Enviar solicitud</button>
             </form>
@@ -72,6 +74,30 @@
     </div>
 
     <div class="col-md-8">
+      <div class="card mb-3 p-3">
+        <div class="d-flex align-items-center gap-3">
+          {% if profile and profile.profile_picture %}
+            <img src="{{ profile.profile_picture.url }}" alt="{{ profile_user.username }}" class="rounded-circle" width="96" height="96">
+          {% else %}
+            <div class="rounded-circle bg-secondary d-inline-flex justify-content-center align-items-center" style="width:96px;height:96px;">
+              <i class="bi bi-person-fill text-white fs-3"></i>
+            </div>
+          {% endif %}
+
+          <div>
+            <h4 class="mb-0">{{ profile_user.get_full_name|default:profile_user.username }}</h4>
+            <p class="mb-1 small text-muted">@{{ profile_user.username }}</p>
+            <p class="mb-0">{{ profile.bio|default:"" |linebreaksbr }}</p>
+          </div>
+
+          {% if request.user == profile_user %}
+            <div class="ms-auto">
+              <a href="{% url 'profiles:edit' %}" class="btn btn-sm btn-outline-primary">Editar perfil</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">Asignaturas actuales</div>
         <div class="card-body">
@@ -91,7 +117,7 @@
         <div class="card mt-3">
           <div class="card-header">Biografía</div>
           <div class="card-body">
-            <p>{{ profile.bio }}</p>
+            <p>{{ profile.bio|linebreaksbr }}</p>
           </div>
         </div>
       {% endif %}

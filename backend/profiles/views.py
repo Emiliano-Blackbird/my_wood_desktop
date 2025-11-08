@@ -1,10 +1,12 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import DetailView, ListView, View
+from django.views.generic import DetailView, ListView, View, UpdateView
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from .models import UserProfile
+from .forms import UserProfileForm
 
 User = get_user_model()
 
@@ -100,3 +102,20 @@ class SendFriendRequestView(LoginRequiredMixin, View):
 class MyProfileRedirectView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         return redirect(reverse("profiles:detail", args=[request.user.username]))
+
+
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    model = UserProfile
+    form_class = UserProfileForm
+    template_name = "profiles/edit.html"
+
+    def get_object(self, queryset=None):
+        # editar el propio perfil
+        return UserProfile.objects.get(user=self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, "Perfil actualizado.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('profiles:detail', args=[self.request.user.username])
