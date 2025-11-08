@@ -1,0 +1,65 @@
+{% extends "general/layout.html" %}
+{% block title %}Post — {{ post.user.get_full_name|default:post.user.username }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="mb-3">
+    <a href="{% url 'posts:list' %}" class="btn btn-sm btn-outline-secondary">&larr; Volver a posts</a>
+  </div>
+
+  <div class="card">
+    {% if post.image %}
+      <img src="{{ post.image.url }}" class="card-img-top" alt="post image">
+    {% endif %}
+
+    <div class="card-body">
+      <div class="d-flex align-items-start gap-3 mb-2">
+        <div>
+          <h5 class="mb-0">{{ post.user.get_full_name|default:post.user.username }}</h5>
+          <p class="small text-muted mb-0">@{{ post.user.username }} · {{ post.created_at|date:"SHORT_DATETIME_FORMAT" }}</p>
+        </div>
+
+        <div class="ms-auto d-flex gap-2">
+          {% if request.user == post.user %}
+            <a href="{% url 'posts:update' post.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+            <a href="{% url 'posts:delete' post.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <p class="mb-2">{{ post.caption|linebreaksbr }}</p>
+
+      <div class="mb-3">
+        {% for s in post.subjects.all %}
+          <span class="badge bg-secondary">{{ s.name }}</span>
+        {% endfor %}
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <form method="post" action="{% url 'posts:like' post.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-danger" type="submit">
+            {% if request.user.is_authenticated and request.user in post.likes.all %}
+              <i class="bi bi-heart-fill"></i>
+            {% else %}
+              <i class="bi bi-heart"></i>
+            {% endif %}
+            <span class="ms-1">{{ post.likes_count }}</span>
+          </button>
+        </form>
+
+        <form method="post" action="{% url 'posts:save' post.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-secondary" type="submit">
+            {% if request.user.is_authenticated and request.user in post.saved_by.all %}
+              <i class="bi bi-bookmark-fill"></i>
+            {% else %}
+              <i class="bi bi-bookmark"></i>
+            {% endif %}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

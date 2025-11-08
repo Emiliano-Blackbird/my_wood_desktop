@@ -1,0 +1,20 @@
+{% extends "general/layout.html" %}
+{% load crispy_forms_tags %}
+{% block title %}{% if object %}Editar Post{% else %}Crear Post{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="card p-3">
+    <h5 class="mb-3">{% if object %}Editar Post{% else %}Crear Post{% endif %}</h5>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      {{ form|crispy }}
+      <div class="mt-3">
+        <button class="btn btn-primary" type="submit">Guardar</button>
+        <a href="{% url 'posts:list' %}" class="btn btn-secondary ms-2">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

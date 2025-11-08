@@ -17,6 +17,7 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
     path('legal/', LegalView.as_view(), name='legal'),
+    path('posts/', include('posts.urls', namespace='posts')),
     path('profiles/', include('profiles.urls', namespace='profiles')),
     path('chat/', include('chat.urls', namespace='chat')),
     path('notifications/', include('notifications.urls', namespace='notifications')),
